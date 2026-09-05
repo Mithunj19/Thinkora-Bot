@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thinkora Bot Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --surface-hover: #e2e8f0;
+      --border: #e2e8f0;
+      --border-focus: #0d9488;
+      --accent: #0d9488;
+      --accent-d: #0f766e;
+      --accent-glow: rgba(13, 148, 136, 0.16);
+      --accent-light: #f0fdfa;
+      /* legacy aliases */
+      --teal: var(--accent);
+      --teal-d: var(--accent-d);
+      --teal-glow: var(--accent-glow);
+      --text: #0f172a;
+      --text-sec: #475569;
+      --text-muted: #64748b;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --danger-border: #fca5a5;
+      --font: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --radius: 12px;
+      --r-sm: 8px;
+      --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    }
+
+    /* ── Theme Palettes (Light Mode) ─────────────────────────────────── */
+    body.style-teal {
+      --accent: #0d9488;
+      --accent-d: #0f766e;
+      --accent-glow: rgba(13, 148, 136, 0.18);
+      --accent-light: #f0fdfa;
+      --border-focus: #0d9488;
+    }
+    body.style-pink {
+      --accent: #db2777;
+      --accent-d: #be185d;
+      --accent-glow: rgba(219, 39, 119, 0.18);
+      --accent-light: #fdf2f8;
+      --border-focus: #db2777;
+    }
+    body.style-purple {
+      --accent: #7c3aed;
+      --accent-d: #6d28d9;
+      --accent-glow: rgba(124, 58, 237, 0.18);
+      --accent-light: #f5f3ff;
+      --border-focus: #7c3aed;
+    }
+    body.style-orange {
+      --accent: #ea580c;
+      --accent-d: #c2410c;
+      --accent-glow: rgba(234, 88, 12, 0.18);
+      --accent-light: #fff7ed;
+      --border-focus: #ea580c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14.5px;
+      line-height: 1.45;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+
+    /* Top App Header */
+    .app-hdr {
+      background: var(--surface);
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .app-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-d));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+
+    .app-title {
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .app-sub {
+      font-size: 0.82rem;
+      color: var(--text-sec);
+      margin-top: 2px;
+    }
+
+    /* Tab Navigation */
+    .tabs-bar {
+      display: flex;
+      gap: 6px;
+      padding: 10px 22px 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      padding: 9px 18px;
+      border: none;
+      background: transparent;
+      color: var(--text-sec);
+      font-family: var(--font);
+      font-size: 0.92rem;
+      font-weight: 600;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      background: var(--bg);
+      font-weight: 700;
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 3px 3px 0 0;
+    }
+
+    /* Tab Contents Container */
+    .tab-content-wrap {
+      flex: 1;
+      padding: 18px 22px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .tab-pane {
+      display: none;
+      height: 100%;
+    }
+
+    .tab-pane.active {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeIn 0.15s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Components */
+    .form-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .sec-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sec-title span { font-size: 1.15rem; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-lbl {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-sec);
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 9px 13px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.94rem;
+      outline: none;
+      transition: all 0.15s;
+      user-select: text;
+    }
+
+    .field-input:focus {
+      background: #ffffff;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .field-hint {
+      font-size: 0.80rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .field-hint a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .field-hint a:hover { text-decoration: underline; }
+
+    /* Grid layout */
+    .dual-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Reminders List Box */
+    .rem-scroll-box {
+      flex: 1;
+      min-height: 130px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 6px;
+    }
+
+    .rem-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .rem-item.pending { border-left: 3px solid var(--accent); }
+    .rem-item.fired { opacity: 0.6; border-left: 3px solid var(--text-muted); }
+
+    .rem-meta { flex: 1; min-width: 0; }
+    .rem-name {
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rem-time-tag { font-size: 0.80rem; color: var(--accent); font-weight: 600; margin-top: 2px; }
+    .rem-item.fired .rem-time-tag { color: var(--text-muted); }
+
+    .btn-icon-del {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: all 0.15s;
+    }
+    .btn-icon-del:hover { color: var(--danger); background: var(--danger-bg); }
+
+    .empty-placeholder {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      padding: 18px;
+      font-style: italic;
+    }
+
+    /* Bottom Action Bar */
+    .bottom-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.03);
+    }
+    .bottom-bar-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .bottom-bar-info .app-version {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+    .bottom-bar-info .app-dev {
+      font-size: 0.68rem;
+      color: var(--text-muted, #9ca3af);
+    }
+
+    .btn-primary {
+      padding: 10px 24px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-d));
+      color: #ffffff;
+      border: none;
+      border-radius: var(--r-sm);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px var(--accent-glow);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .btn-danger {
+      padding: 10px 16px;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+      border-radius: var(--r-sm);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .btn-danger:hover { background: #fecaca; transform: translateY(-1px); }
+
+    /* Toast Notifications */
+    #toast {
+      position: fixed;
+      bottom: 64px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #0f172a;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 9px 20px;
+      border-radius: 99px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      z-index: 100;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-hdr">
+    <div class="app-title-group">
+      <div class="app-logo">🤖</div>
+      <div>
+        <div class="app-title">Thinkora Bot Settings</div>
+        <div class="app-sub">Configure companion personality, AI model &amp; preferences</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Segmented Tab Navigation -->
+  <nav class="tabs-bar" role="tablist">
+    <button class="tab-btn active" data-tab="general">👤 Profile</button>
+    <button class="tab-btn" data-tab="style">🎨 Style</button>
+    <button class="tab-btn" data-tab="voice">🔊 Voice</button>
+    <button class="tab-btn" data-tab="reminders">⏰ Reminders</button>
+    <button class="tab-btn" data-tab="memory">🧠 Memory</button>
+  </nav>
+
+  <!-- Tab Contents Wrap (No Window Scroll) -->
+  <main class="tab-content-wrap">
+
+    <!-- TAB 1: Profile -->
+    <section class="tab-pane active" id="pane-general">
+      <div class="form-section">
+        <div class="sec-title"><span>👤</span> Companion &amp; User Identity</div>
+        <div class="dual-row">
+          <div class="field">
+            <label class="field-lbl" for="cfg-bot">Bot Name</label>
+            <input class="field-input" id="cfg-bot" type="text" maxlength="30" placeholder="Thinkora Bot" />
+          </div>
+          <div class="field">
+            <label class="field-lbl" for="cfg-user">Your Name</label>
+            <input class="field-input" id="cfg-user" type="text" maxlength="30" placeholder="Your name" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="sec-title"><span>🔑</span> Google Gemini API Configuration</div>
+        <div class="field">
+          <label class="field-lbl" for="cfg-key">Gemini API Key</label>
+          <div style="display:flex; gap:8px;">
+            <input class="field-input" id="cfg-key" type="password" placeholder="AIzaSy..." style="flex:1; font-family:'JetBrains Mono',monospace; font-size:0.92rem;" />
+            <button type="button" id="btn-key-toggle" style="padding:0 14px; border-radius:var(--r-sm); border:1.2px solid var(--border); background:var(--surface2); color:var(--text); cursor:pointer; font-size:0.95rem;" title="Show/Hide Key">👁️</button>
+          </div>
+          <div class="field-hint" style="margin-top:6px;">
+            Keys start with <b>AIzaSy...</b> and are securely encrypted with Windows DPAPI.<br>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank">Get a free key from Google AI Studio &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Style & Appearance -->
+    <section class="tab-pane" id="pane-style">
+      <div class="form-section">
+        <div class="sec-title"><span>🎨</span> Theme &amp; Animation Dynamics</div>
+        <div class="dual-row">
+          <div class="field">
+            <label class="field-lbl" for="cfg-style">Color Palette</label>
+            <select class="field-input" id="cfg-style">
+              <option value="teal">Classic Teal</option>
+              <option value="pink">Neon Pink</option>
+              <option value="purple">Soft Purple</option>
+              <option value="orange">Sunset Orange</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-lbl" for="cfg-anim">Animation Mode</label>
+            <select class="field-input" id="cfg-anim">
+              <option value="orbit">Orbit (Dynamic Glow)</option>
+              <option value="pulse">Pulse (Breathing Light)</option>
+              <option value="float">Static (Subtle)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="sec-title"><span>🌟</span> Avatar Customization</div>
+        <div class="dual-row">
+          <div class="field">
+            <label class="field-lbl" for="cfg-havstyle">Visual Preset</label>
+            <select class="field-input" id="cfg-havstyle">
+              <option value="classic">⭕ Classic (Orbit Ring)</option>
+              <option value="robot">🤖 Robot (Square + LED)</option>
+              <option value="person">🧑 Person (Blob Wave)</option>
+              <option value="crystal">💎 Crystal (Shimmer)</option>
+              <option value="neon">⚡ Neon (Double Pulse)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-lbl" for="cfg-shape">Symbol / Emoji</label>
+            <select class="field-input" id="cfg-shape">
+              <option value="text">Text Initials</option>
+              <option value="robot">🤖 Robot</option>
+              <option value="cat">😸 Cat</option>
+              <option value="alien">👽 Alien</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:6px;">
+          <label class="field-lbl">Custom Photo Avatar</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" id="btn-pick-img" class="field-input" style="flex:1; cursor:pointer; text-align:center; font-weight:600;">Choose Image File...</button>
+            <button type="button" id="btn-clear-img" class="btn-danger" style="padding:9px 14px; font-size:0.95rem;" title="Clear Image">✕</button>
+          </div>
+          <div id="img-preview-box" style="margin-top:8px; display:none; align-items:center; gap:10px;">
+            <img id="img-preview-tag" src="" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);" />
+            <span style="font-size:0.82rem; color:var(--text-sec); font-weight:500;">Custom image selected</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Voice & Audio -->
+    <section class="tab-pane" id="pane-voice">
+      <div class="form-section">
+        <div class="sec-title"><span>🔊</span> Response &amp; Speech Preferences</div>
+        <div class="field">
+          <label class="field-lbl" for="cfg-respmode">Response Mode</label>
+          <select class="field-input" id="cfg-respmode">
+            <option value="text">💬 Text Only</option>
+            <option value="text_voice">🔊 Text + Voice (Speaks replies aloud)</option>
+          </select>
+          <div class="field-hint">Voice responses use Windows' native offline neural text-to-speech (0 API tokens).</div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="sec-title"><span>🎙️</span> Personality Tone &amp; Voice Actor</div>
+        <div class="field">
+          <label class="field-lbl" for="cfg-voicestyle">Voice Actor / Style Preset</label>
+          <div style="display:flex; gap:8px;">
+            <select class="field-input" id="cfg-voicestyle" style="flex:1;">
+              <option value="warm">🌸 Warm &amp; Soft (Female Tone)</option>
+              <option value="upbeat">⚡ Upbeat &amp; Cheerful (High &amp; Fast)</option>
+              <option value="calm">🌙 Calm &amp; Deep (Male / Low Tone)</option>
+              <option value="robot">🤖 Cyber Robot (Mechanical Pitch)</option>
+              <option value="default">👤 Standard Natural Tone</option>
+            </select>
+            <button type="button" id="btn-test-voice" style="padding:0 16px; border-radius:var(--r-sm); border:1.5px solid var(--border); background:var(--surface2); color:var(--text); font-weight:600; font-size:0.92rem; cursor:pointer;" title="Preview Audio">▶️ Test</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Reminders & Alarms -->
+    <section class="tab-pane" id="pane-reminders">
+      <div class="form-section">
+        <div class="sec-title"><span>⏰</span> Set New Reminder</div>
+        <div style="display:flex; gap:8px;">
+          <input class="field-input" id="rem-input-text" type="text" placeholder="Reminder topic (e.g. Drink water)..." style="flex:2;" maxlength="100" />
+          <input class="field-input" id="rem-input-time" type="time" style="flex:1;" title="Specific Time Today" />
+          <button type="button" id="btn-add-reminder" class="btn-primary" style="padding:0 18px; white-space:nowrap;">+ Add</button>
+        </div>
+      </div>
+
+      <div class="form-section" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+        <div class="sec-title"><span>⏳</span> Scheduled Reminders</div>
+        <div class="rem-scroll-box" id="reminders-active-box"></div>
+        <div id="reminders-past-box" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5: Memory & Data Management -->
+    <section class="tab-pane" id="pane-memory">
+      <div class="form-section">
+        <div class="sec-title"><span>🧠</span> Long-Term Memory (Permanent Context)</div>
+        <div class="field">
+          <textarea class="field-input" id="cfg-memory" rows="3" placeholder="Facts you want Thinkora Bot to remember permanently across all sessions (e.g. 'I work as a developer', 'My dog is Coco', 'Prefer concise answers')..." style="resize:none; height:80px; font-size:0.94rem;"></textarea>
+          <div class="field-hint">Automatically injected into the companion's system memory across all chats.</div>
+        </div>
+      </div>
+
+      <div class="form-section" style="border-color: var(--danger-border); background: #fef2f2;">
+        <div class="sec-title" style="color: var(--danger);"><span>⚠️</span> Data Management</div>
+        <div class="dual-row">
+          <button type="button" id="btn-clear-chat" class="btn-danger" style="text-align:center; padding:11px; font-size:0.90rem;">
+            🗑️ Clear Active Chat
+          </button>
+          <button type="button" id="btn-factory-reset" class="btn-danger" style="text-align:center; padding:11px; font-size:0.90rem; background:#fee2e2; border-color: #f87171;">
+            🔄 Factory Reset
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Save Bar -->
+  <footer class="bottom-bar">
+    <div class="bottom-bar-info">
+      <span class="app-version">Thinkora Bot v1.0.0</span>
+      <span class="app-dev">Developed by Mithunj19</span>
+    </div>
+    <button type="button" id="btn-save-settings" class="btn-primary">💾 Save Changes</button>
+  </footer>
+
+  <!-- Toast Element -->
+  <div id="toast">Saved successfully!</div>
+
+  <script>
+    // Voice styles definitions with distinct gender and pitch mappings
+    var cachedVoices = [];
+
+    function getAvailableVoices() {
+      if (!window.speechSynthesis) return [];
+      if (cachedVoices.length > 0) return cachedVoices;
+      cachedVoices = window.speechSynthesis.getVoices() || [];
+      return cachedVoices;
+    }
+
+    function findGenderVoice(gender) {
+      var voices = getAvailableVoices();
+      if (!voices || voices.length === 0) return null;
+
+      if (gender === 'female') {
+        return voices.find(function(v) {
+          var n = v.name.toLowerCase();
+          return n.includes('zira') || n.includes('hazel') || n.includes('susan') || n.includes('catherine') || n.includes('female') || n.includes('samantha') || n.includes('victoria') || n.includes('eva') || n.includes('jenny');
+        }) || voices.find(function(v) { return v.lang.startsWith('en'); }) || voices[0];
+      }
+      
+      if (gender === 'male') {
+        return voices.find(function(v) {
+          var n = v.name.toLowerCase();
+          return n.includes('david') || n.includes('mark') || n.includes('george') || n.includes('richard') || n.includes('male') || n.includes('alex') || n.includes('guy');
+        }) || voices.find(function(v) { return v.lang.startsWith('en'); }) || voices[0];
+      }
+
+      return voices.find(function(v) { return v.lang.startsWith('en'); }) || voices[0];
+    }
+
+    var VOICE_STYLES = {
+      warm: {
+        pitch: 1.15,
+        rate: 0.95,
+        getVoice: function() { return findGenderVoice('female'); },
+        preview: "Hey there! I'm your warm companion, always here whenever you want to talk."
+      },
+      upbeat: {
+        pitch: 1.45,
+        rate: 1.22,
+        getVoice: function() { return findGenderVoice('female'); },
+        preview: "Woo! It's so awesome to chat with you today! Let's do this!"
+      },
+      calm: {
+        pitch: 0.60,
+        rate: 0.88,
+        getVoice: function() { return findGenderVoice('male'); },
+        preview: "Take a deep breath. I'm right here with you. Take all the time you need."
+      },
+      robot: {
+        pitch: 1.85,
+        rate: 1.18,
+        getVoice: function() { return findGenderVoice('male'); },
+        preview: "Greetings human. Companion neural audio synthesis online."
+      },
+      default: {
+        pitch: 1.0,
+        rate: 1.0,
+        getVoice: function() { return findGenderVoice('default'); },
+        preview: "Hello! This is my standard conversational voice style."
+      }
+    };
+
+    function populateVoiceOptions() {
+      if (!cfgVoiceStyle) return;
+      var currentVal = cfgVoiceStyle.value || 'warm';
+      var voices = getAvailableVoices();
+
+      cfgVoiceStyle.innerHTML = `
+        <optgroup label="✨ Personality &amp; Tone Presets">
+          <option value="warm">&#x1F338; Warm &amp; Soft (Female Tone)</option>
+          <option value="upbeat">&#x26A1; Upbeat &amp; Cheerful (High &amp; Fast)</option>
+          <option value="calm">&#x1F319; Calm &amp; Deep (Male / Low Tone)</option>
+          <option value="robot">&#x1F916; Cyber Robot (Mechanical Pitch)</option>
+          <option value="default">&#x1F464; Standard Natural Tone</option>
+        </optgroup>
+      `;
+
+      if (voices && voices.length > 0) {
+        var grp = document.createElement('optgroup');
+        grp.label = '🎤 Installed System Voices';
+        voices.forEach(function(v) {
+          var opt = document.createElement('option');
+          opt.value = 'sys:' + v.name;
+          opt.textContent = v.name + (v.lang ? ' (' + v.lang + ')' : '');
+          grp.appendChild(opt);
+        });
+        cfgVoiceStyle.appendChild(grp);
+      }
+
+      cfgVoiceStyle.value = currentVal;
+    }
+
+    if (window.speechSynthesis) {
+      getAvailableVoices();
+      window.speechSynthesis.onvoiceschanged = function() {
+        cachedVoices = window.speechSynthesis.getVoices() || [];
+        populateVoiceOptions();
+      };
+    }
+
+    var currentAvatarImage = '';
+
+    // DOM Elements
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    var tabPanes = document.querySelectorAll('.tab-pane');
+    var cfgBot = document.getElementById('cfg-bot');
+    var cfgUser = document.getElementById('cfg-user');
+    var cfgKey = document.getElementById('cfg-key');
+    var btnKeyToggle = document.getElementById('btn-key-toggle');
+    var cfgStyle = document.getElementById('cfg-style');
+    var cfgAnim = document.getElementById('cfg-anim');
+    var cfgHavStyle = document.getElementById('cfg-havstyle');
+    var cfgShape = document.getElementById('cfg-shape');
+    var btnPickImg = document.getElementById('btn-pick-img');
+    var btnClearImg = document.getElementById('btn-clear-img');
+    var imgPreviewBox = document.getElementById('img-preview-box');
+    var imgPreviewTag = document.getElementById('img-preview-tag');
+    var cfgRespMode = document.getElementById('cfg-respmode');
+    var cfgVoiceStyle = document.getElementById('cfg-voicestyle');
+    var btnTestVoice = document.getElementById('btn-test-voice');
+    var cfgMemory = document.getElementById('cfg-memory');
+    var btnSave = document.getElementById('btn-save-settings');
+    var btnClearChat = document.getElementById('btn-clear-chat');
+    var btnFactoryReset = document.getElementById('btn-factory-reset');
+    var toast = document.getElementById('toast');
+
+    // Reminders DOM
+    var remInputText = document.getElementById('rem-input-text');
+    var remInputTime = document.getElementById('rem-input-time');
+    var btnAddReminder = document.getElementById('btn-add-reminder');
+    var remindersActiveBox = document.getElementById('reminders-active-box');
+    var remindersPastBox = document.getElementById('reminders-past-box');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 2400);
+    }
+
+    // Switch Tab
+    function switchTab(tabKey) {
+      tabBtns.forEach(function(b) { b.classList.toggle('active', b.dataset.tab === tabKey); });
+      tabPanes.forEach(function(p) { p.classList.toggle('active', p.id === 'pane-' + tabKey); });
+      if (tabKey === 'reminders') loadReminders();
+    }
+
+    tabBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        switchTab(btn.dataset.tab);
+      });
+    });
+
+    // Key Eye Toggle
+    btnKeyToggle.addEventListener('click', function() {
+      if (cfgKey.type === 'password') {
+        cfgKey.type = 'text';
+        btnKeyToggle.textContent = '🔒';
+      } else {
+        cfgKey.type = 'password';
+        btnKeyToggle.textContent = '👁️';
+      }
+    });
+
+    // Image Picker
+    btnPickImg.addEventListener('click', async function() {
+      var img = await window.api.pickImage();
+      if (img) {
+        currentAvatarImage = img;
+        imgPreviewTag.src = img;
+        imgPreviewBox.style.display = 'flex';
+      }
+    });
+
+    btnClearImg.addEventListener('click', function() {
+      currentAvatarImage = '';
+      imgPreviewTag.src = '';
+      imgPreviewBox.style.display = 'none';
+    });
+
+    // Test Voice
+    btnTestVoice.addEventListener('click', function() {
+      var selected = cfgVoiceStyle.value || 'warm';
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      
+      var previewText = "Hello! I am your companion.";
+      var utterance = new SpeechSynthesisUtterance();
+
+      if (selected.startsWith('sys:')) {
+        var exactName = selected.substring(4);
+        var voices = getAvailableVoices();
+        var match = voices.find(function(v) { return v.name === exactName; });
+        if (match) utterance.voice = match;
+        utterance.pitch = 1.0;
+        utterance.rate  = 1.0;
+        previewText = "Testing installed system voice: " + exactName;
+      } else {
+        var styleCfg = VOICE_STYLES[selected] || VOICE_STYLES.default;
+        utterance.pitch = styleCfg.pitch || 1.0;
+        utterance.rate  = styleCfg.rate || 1.0;
+        var vObj = styleCfg.getVoice ? styleCfg.getVoice() : null;
+        if (vObj) utterance.voice = vObj;
+        previewText = styleCfg.preview || "Testing voice tone.";
+      }
+
+      utterance.text = previewText;
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+      window.speechSynthesis.speak(utterance);
+    });
+
+    // Reminders Management
+    async function loadReminders() {
+      if (!remindersActiveBox) return;
+      var all = await window.api.db.getReminders();
+      var now = Math.floor(Date.now() / 1000);
+      var active = all.filter(function(r) { return r.status === 'pending' && r.due_ts > now; });
+
+      remindersActiveBox.innerHTML = '';
+      if (active.length === 0) {
+        remindersActiveBox.innerHTML = '<div class="empty-placeholder">No upcoming reminders scheduled.</div>';
+      } else {
+        active.forEach(function(r) {
+          var d = new Date(r.due_ts * 1000);
+          var timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          var diffSec = r.due_ts - now;
+          var diffStr = diffSec < 60 ? ('in ' + diffSec + 's') : diffSec < 3600 ? ('in ' + Math.ceil(diffSec/60) + 'm') : ('in ' + (diffSec/3600).toFixed(1) + 'h');
+
+          var item = document.createElement('div');
+          item.className = 'rem-item pending';
+          item.innerHTML = '<div class="rem-meta">'
+            + '<div class="rem-name">' + escapeHtml(r.text) + '</div>'
+            + '<div class="rem-time-tag">⏰ ' + timeStr + ' (' + diffStr + ')</div>'
+            + '</div>'
+            + '<button class="btn-icon-del" title="Cancel Reminder">🗑️</button>';
+
+          item.querySelector('.btn-icon-del').addEventListener('click', async function() {
+            await window.api.db.deleteReminder(r.id);
+            loadReminders();
+            showToast('Reminder removed');
+          });
+          remindersActiveBox.appendChild(item);
+        });
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    btnAddReminder.addEventListener('click', async function() {
+      var txt = remInputText.value.trim();
+      if (!txt) { showToast('Please enter reminder text'); remInputText.focus(); return; }
+
+      if (!remInputTime.value) {
+        showToast('Please select a reminder time');
+        remInputTime.focus();
+        return;
+      }
+
+      var parts = remInputTime.value.split(':');
+      var now = new Date();
+      var targetDate = new Date();
+      targetDate.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0, 0);
+      if (targetDate.getTime() <= now.getTime()) {
+        targetDate.setDate(targetDate.getDate() + 1);
+      }
+      var dueTs = Math.floor(targetDate.getTime() / 1000);
+
+      await window.api.db.createReminder(txt, dueTs);
+      remInputText.value = '';
+      remInputTime.value = '';
+      loadReminders();
+      showToast('⏰ Reminder scheduled!');
+    });
+
+    // Save Settings
+    btnSave.addEventListener('click', async function() {
+      var bName = cfgBot.value.trim();
+      var uName = cfgUser.value.trim();
+      var aKey  = cfgKey.value.trim();
+
+      if (!bName || !uName || !aKey) {
+        showToast('Bot name, user name, and API key are required');
+        return;
+      }
+
+      await window.api.db.set('bot_name', bName);
+      await window.api.db.set('user_name', uName);
+      await window.api.db.set('api_key', aKey);
+      await window.api.db.set('bot_style', cfgStyle.value);
+      await window.api.db.set('bot_anim', cfgAnim.value);
+      await window.api.db.set('bot_hav_style', cfgHavStyle.value);
+      await window.api.db.set('bot_shape', cfgShape.value);
+      await window.api.db.set('bot_avatar_image', currentAvatarImage);
+      await window.api.db.set('resp_mode', cfgRespMode.value);
+      await window.api.db.set('voice_style', cfgVoiceStyle.value);
+      await window.api.db.set('user_memory', cfgMemory.value.trim());
+
+      window.api.notifySettingsUpdated();
+      showToast('✨ Settings saved successfully!');
+    });
+
+    // Clear Active Chat (Deletes ONLY the currently active session from history)
+    btnClearChat.addEventListener('click', async function() {
+      if (!confirm('Delete this active chat from history?')) return;
+      var activeId = await window.api.db.get('active_session_id');
+      var sessions = await window.api.db.getSessions();
+      
+      var targetId = activeId ? parseInt(activeId, 10) : null;
+      if (!targetId && sessions && sessions.length > 0) {
+        targetId = sessions[0].id;
+      }
+      
+      if (targetId) {
+        await window.api.db.deleteSession(targetId);
+      }
+      
+      var remaining = await window.api.db.getSessions();
+      if (!remaining || remaining.length === 0) {
+        var newId = await window.api.db.createSession();
+        await window.api.db.set('active_session_id', newId);
+      } else {
+        await window.api.db.set('active_session_id', remaining[0].id);
+      }
+
+      window.api.notifySettingsUpdated();
+      showToast('Active chat deleted 🗑️');
+    });
+
+    // Factory Reset
+    btnFactoryReset.addEventListener('click', async function() {
+      if (!confirm('Are you sure you want to FACTORY RESET Thinkora Bot? This will permanently delete all keys, settings, memories, and chat logs.')) return;
+      await window.api.db.resetAll();
+      window.api.notifySettingsUpdated();
+      showToast('Factory reset complete');
+      setTimeout(function() { window.close(); }, 1000);
+    });
+
+    // Apply theme class to settings body
+    function applyTheme(style) {
+      document.body.classList.remove('style-teal', 'style-pink', 'style-purple', 'style-orange');
+      if (style && style !== 'teal') {
+        document.body.classList.add('style-' + style);
+      } else {
+        document.body.classList.add('style-teal');
+      }
+    }
+
+    // Live-preview theme when user changes the dropdown
+    cfgStyle.addEventListener('change', function() {
+      applyTheme(cfgStyle.value);
+    });
+
+    // Load Settings into UI
+    async function loadData() {
+      populateVoiceOptions();
+      cfgBot.value        = await window.api.db.get('bot_name') || 'Thinkora Bot';
+      cfgUser.value       = await window.api.db.get('user_name') || '';
+      cfgKey.value        = await window.api.db.get('api_key') || '';
+      cfgStyle.value      = await window.api.db.get('bot_style') || 'teal';
+      cfgAnim.value       = await window.api.db.get('bot_anim') || 'orbit';
+      cfgHavStyle.value   = await window.api.db.get('bot_hav_style') || 'classic';
+      cfgShape.value      = await window.api.db.get('bot_shape') || 'text';
+      cfgRespMode.value   = await window.api.db.get('resp_mode') || 'text';
+      cfgVoiceStyle.value = await window.api.db.get('voice_style') || 'warm';
+      cfgMemory.value     = await window.api.db.get('user_memory') || '';
+
+      // Apply the saved theme immediately
+      applyTheme(cfgStyle.value);
+      
+      currentAvatarImage  = await window.api.db.get('bot_avatar_image') || '';
+      if (currentAvatarImage) {
+        imgPreviewTag.src = currentAvatarImage;
+        imgPreviewBox.style.display = 'flex';
+      }
+
+      // Check URL query for default tab
+      var urlParams = new URLSearchParams(window.location.search);
+      var tabQuery = urlParams.get('tab');
+      if (tabQuery) switchTab(tabQuery);
+    }
+
+    if (window.api && window.api.onSettingsSwitchTab) {
+      window.api.onSettingsSwitchTab(function(tabKey) {
+        if (tabKey) switchTab(tabKey);
+      });
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

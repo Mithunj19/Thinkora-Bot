@@ -1,0 +1,76 @@
+# =========================
+# Node.js
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# =========================
+# Electron Build Output
+# =========================
+dist/
+out/
+release/
+
+# =========================
+# Electron Cache
+# =========================
+.electron/
+electron-builder-cache/
+app-builder-cache/
+
+# =========================
+# Environment & Secrets
+# =========================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# =========================
+# OS Generated Files
+# =========================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+
+# =========================
+# IDE & Editor
+# =========================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# SQLite DB (local data — uncomment to exclude)
+# =========================
+# *.db
+# *.sqlite

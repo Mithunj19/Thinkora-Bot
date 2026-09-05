@@ -1,0 +1,35 @@
+{
+  "name": "thinkora-bot",
+  "productName": "Thinkora Bot",
+  "version": "1.0.0",
+  "description": "Thinkora Bot — Your Windows Desktop Companion — a floating AI friend that lives on your screen",
+  "main": "main.js",
+  "scripts": {
+    "start": ".\\node_modules\\electron\\dist\\electron.exe .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.thinkora.bot",
+    "productName": "Thinkora Bot",
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Mithunj19",
+        "repo": "Thinkora-Bot"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "marked": "^18.0.11",
+    "sql.js": "^1.10.3"
+  },
+  "devDependencies": {
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3"
+  }
+}
