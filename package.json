@@ -5,7 +5,7 @@
   "description": "Thinkora Bot — Your Windows Desktop Companion — a floating AI friend that lives on your screen",
   "main": "main.js",
   "scripts": {
-    "start": ".\\node_modules\\electron\\dist\\electron.exe .",
+    "start": "electron .",
     "build": "electron-builder"
   },
   "build": {
