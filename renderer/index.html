@@ -79,15 +79,20 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Full-window transparent container */
+    /* Full-window transparent container (fixed DIP canvas prevents DPI rounding layout shifts) */
     #overlay {
-      position: fixed;
-      inset: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 440px;
+      height: 680px;
+      box-sizing: border-box;
       display: flex;
       align-items: flex-end;
       justify-content: flex-end;
       padding: 24px;
       pointer-events: none;
+      overflow: hidden;
     }
 
     /* ── Bot Zone ────────────────────────────────────────────── */
@@ -119,16 +124,16 @@
 
       /* Closed */
       opacity: 0;
-      transform: scale(0.88) translateY(24px);
+      transform: scale(0.88);
       transform-origin: bottom right;
       pointer-events: none;
       transition:
-        opacity  0.35s cubic-bezier(0.4,0,0.2,1),
-        transform 0.4s cubic-bezier(0.34,1.4,0.64,1);
+        opacity  0.28s cubic-bezier(0.4,0,0.2,1),
+        transform 0.32s cubic-bezier(0.34,1.3,0.64,1);
     }
     #chat-panel.open {
       opacity: 1;
-      transform: scale(1) translateY(0);
+      transform: scale(1);
       pointer-events: auto;
     }
 
@@ -143,6 +148,10 @@
       position: relative;
       overflow: hidden;
       box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      cursor: grab;
+    }
+    #panel-header:active {
+      cursor: grabbing;
     }
     /* shimmer sweep */
     #panel-header::after {
@@ -607,9 +616,13 @@
     #avatar-zone {
       position: relative;
       width: 80px; height: 80px;
-      cursor: pointer;
+      cursor: grab;
       flex-shrink: 0;
       pointer-events: auto;
+    }
+    #avatar-zone:active,
+    #avatar-zone.dragging {
+      cursor: grabbing !important;
     }
 
     .av-ring {
@@ -652,8 +665,9 @@
       50%      { box-shadow: 0 14px 44px var(--teal-glow), 0 3px 10px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.3); }
     }
 
-    #avatar-zone:hover #bot-av {
-      transform: scale(1.12) !important;
+    #avatar-zone:hover #bot-av,
+    #avatar-zone:active #bot-av,
+    #avatar-zone.dragging #bot-av {
       animation-play-state: paused;
       box-shadow: 0 18px 52px var(--teal-glow), 0 4px 14px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.3);
     }
@@ -1144,10 +1158,13 @@ var remindersBtn = document.getElementById('reminders-btn');
 // CLICK-THROUGH & DRAGGING
 // ================================================================
 var isOverBotZone = false;
-var dragging  = false;
-var dragLastX = 0, dragLastY = 0;
-var moved     = false;
-var lastMouseX = 0, lastMouseY = 0;
+var isMouseDown   = false;
+var dragging      = false;
+var dragStartX    = 0;
+var dragStartY    = 0;
+var moved         = false;
+var lastMouseX    = 0;
+var lastMouseY    = 0;
 
 function isInteractiveAtPoint(x, y) {
   // 1. History overlay
@@ -1172,13 +1189,19 @@ function isInteractiveAtPoint(x, y) {
 }
 
 var lastCheckTime = 0;
+
+document.addEventListener('mousedown', function(e) {
+  isMouseDown = true;
+  window.api.setIgnoreMouse(false);
+});
+
 document.addEventListener('mousemove', function(e) {
   lastMouseX = e.clientX;
   lastMouseY = e.clientY;
-  if (dragging) return; // Prevent click-through from dropping mouse capture during drag
+  if (isMouseDown || dragging) return; // Never drop mouse capture while mouse is pressed
 
   var now = Date.now();
-  if (now - lastCheckTime < 25) return; // Micro-throttle hit-test to ~40fps for low CPU
+  if (now - lastCheckTime < 30) return;
   lastCheckTime = now;
 
   var over = isInteractiveAtPoint(e.clientX, e.clientY);
@@ -1188,49 +1211,124 @@ document.addEventListener('mousemove', function(e) {
   }
 }, { passive: true });
 
-document.addEventListener('mouseleave', function() {
-  if (!dragging) {
+document.addEventListener('mouseleave', function(e) {
+  if (dragging && (e.buttons === 0 || (e.buttons !== undefined && (e.buttons & 1) === 0))) {
+    handleDragEnd(e);
+  } else if (!isMouseDown && !dragging) {
     isOverBotZone = false;
     window.api.setIgnoreMouse(true);
   }
 });
 
-avatarZone.addEventListener('mousedown', function(e) {
+var panelHeader = document.getElementById('panel-header');
+
+var grabOffsetX = 0;
+var grabOffsetY = 0;
+var activePointerTarget = null;
+var activePointerId = null;
+
+function handleDragStart(e) {
   if (e.button !== 0) return;
-  dragging  = true;
-  moved     = false;
-  dragLastX = e.screenX;
-  dragLastY = e.screenY;
+  if (dragging) return;
+  if (e.target.closest('button, input, textarea, a, select, .speak-btn, .copy-btn')) return;
+  
+  dragging    = true;
+  moved       = false;
+  isMouseDown = true;
+  dragStartX  = e.screenX;
+  dragStartY  = e.screenY;
+  grabOffsetX = e.clientX;
+  grabOffsetY = e.clientY;
+
+  activePointerTarget = e.currentTarget || e.target;
+  activePointerId = e.pointerId;
+  if (activePointerTarget && typeof activePointerTarget.setPointerCapture === 'function' && activePointerId != null) {
+    try {
+      activePointerTarget.setPointerCapture(activePointerId);
+    } catch (_) {}
+  }
+  
+  avatarZone.classList.add('dragging');
   window.api.setIgnoreMouse(false);
   document.body.style.userSelect = 'none';
-  e.preventDefault();
-});
-
-document.addEventListener('mousemove', function(e) {
-  if (!dragging) return;
-  var dx = e.screenX - dragLastX;
-  var dy = e.screenY - dragLastY;
-  if (Math.abs(dx) >= 1 || Math.abs(dy) >= 1) {
-    moved = true;
-    window.api.dragMove(dx, dy);
-    dragLastX = e.screenX;
-    dragLastY = e.screenY;
+  if (window.api && window.api.dragStart) {
+    window.api.dragStart();
   }
-});
+}
 
-document.addEventListener('mouseup', function(e) {
-  if (!dragging) return;
-  if (moved) {
-    window.api.dragEnd();
-    // Keep moved true briefly so following click event is suppressed
-    setTimeout(function() { moved = false; }, 80);
+function handleDragEnd(e) {
+  if (!isMouseDown && !dragging) return;
+
+  if (activePointerTarget && typeof activePointerTarget.releasePointerCapture === 'function' && activePointerId != null) {
+    try {
+      activePointerTarget.releasePointerCapture(activePointerId);
+    } catch (_) {}
   }
-  dragging = false;
+  activePointerTarget = null;
+  activePointerId = null;
+
+  isMouseDown = false;
+  avatarZone.classList.remove('dragging');
   document.body.style.userSelect = '';
 
-  var over = isInteractiveAtPoint(e.clientX, e.clientY);
+  if (dragging) {
+    dragging = false;
+    if (window.api && window.api.dragEnd) {
+      window.api.dragEnd();
+    }
+  }
+
+  var clientX = e && e.clientX != null ? e.clientX : lastMouseX;
+  var clientY = e && e.clientY != null ? e.clientY : lastMouseY;
+  var over = isInteractiveAtPoint(clientX, clientY);
   isOverBotZone = over;
   window.api.setIgnoreMouse(!over);
+}
+
+function handleDragMove(e) {
+  if (!dragging) return;
+  
+  // Fail-safe: if left mouse button is released anywhere, end drag immediately
+  if (e.buttons === 0 || (e.buttons !== undefined && (e.buttons & 1) === 0)) {
+    handleDragEnd(e);
+    return;
+  }
+  
+  var totalDx = e.screenX - dragStartX;
+  var totalDy = e.screenY - dragStartY;
+  var dist = Math.hypot(totalDx, totalDy);
+  
+  if (!moved && dist >= 3) {
+    moved = true;
+  }
+  
+  var targetX = Math.round(e.screenX - grabOffsetX);
+  var targetY = Math.round(e.screenY - grabOffsetY);
+  
+  if (window.api && window.api.dragTo) {
+    window.api.dragTo(targetX, targetY);
+  } else if (window.api && window.api.dragMove) {
+    window.api.dragMove(e.movementX, e.movementY);
+  }
+}
+
+avatarZone.addEventListener('pointerdown', handleDragStart);
+avatarZone.addEventListener('mousedown', handleDragStart);
+if (panelHeader) {
+  panelHeader.addEventListener('pointerdown', handleDragStart);
+  panelHeader.addEventListener('mousedown', handleDragStart);
+}
+
+document.addEventListener('pointermove', handleDragMove);
+document.addEventListener('mousemove', handleDragMove);
+document.addEventListener('pointerup', handleDragEnd);
+document.addEventListener('mouseup', handleDragEnd);
+document.addEventListener('pointercancel', handleDragEnd);
+
+window.addEventListener('blur', function() {
+  if (dragging || isMouseDown) {
+    handleDragEnd();
+  }
 });
 
 // ================================================================
@@ -1841,6 +1939,20 @@ obFinish.addEventListener('click', async function() {
   await window.api.db.set('bot_name', botName);
   await window.api.db.set('user_name', userName);
   await window.api.db.set('api_key', apiKey);
+  // Dynamic layout update listener
+  if (window.api && window.api.onLayoutUpdate) {
+    window.api.onLayoutUpdate(function(mode) {
+      var overlay = document.getElementById('overlay');
+      if (overlay && mode) {
+        overlay.className = mode;
+      }
+    });
+  }
+
+  // Auto-focus input on startup
+  if (msgInput && onboarding.classList.contains('hidden')) {
+    msgInput.focus();
+  }
   updateUI();
   onboarding.classList.add('hidden');
   msgInput.focus();
@@ -2554,6 +2666,16 @@ async function boot() {
   window.api.onShortcutOpenChat(function() {
     openChat();
   });
+
+  // Dynamic layout update listener (up-right, up-left, down-right, down-left)
+  if (window.api && window.api.onLayoutUpdate) {
+    window.api.onLayoutUpdate(function(mode) {
+      var overlay = document.getElementById('overlay');
+      if (overlay && mode) {
+        overlay.className = mode;
+      }
+    });
+  }
 
   // Minimize / restore from tray or notification click
   window.api.onMinimizeBot(function() { minimizeBot(); });

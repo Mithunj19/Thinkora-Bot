@@ -80,9 +80,10 @@
       user-select: none;
     }
 
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 99px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.32); }
 
     /* Top App Header */
     .app-hdr {
@@ -179,16 +180,18 @@
     /* Tab Contents Container */
     .tab-content-wrap {
       flex: 1;
+      min-height: 0;
       padding: 18px 22px;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       background: var(--bg);
+      scroll-behavior: smooth;
     }
 
     .tab-pane {
       display: none;
-      height: 100%;
     }
 
     .tab-pane.active {
@@ -196,6 +199,8 @@
       flex-direction: column;
       gap: 14px;
       animation: fadeIn 0.15s ease-in-out;
+      min-height: min-content;
+      padding-bottom: 16px;
     }
 
     @keyframes fadeIn {

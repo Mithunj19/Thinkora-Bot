@@ -1,7 +1,7 @@
 {
   "name": "thinkora-bot",
   "productName": "Thinkora Bot",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Thinkora Bot — Your Windows Desktop Companion — a floating AI friend that lives on your screen",
   "main": "main.js",
   "scripts": {

@@ -30,6 +30,27 @@ let win  = null;
 let tray = null;
 let db   = null;
 
+// Window & Avatar layout constants
+const W = 440;
+const H = 680;
+const AV_OFF_X = 346;
+const AV_OFF_Y = 586;
+
+let isDraggingWin = false;
+let currentAvatarPos = null; // { x, y }
+let lastSetX = null;
+let lastSetY = null;
+
+function saveCurrentAvatarPos() {
+  if (!win || win.isDestroyed() || !db) return;
+  const bounds = win.getBounds();
+  currentAvatarPos = { x: bounds.x + AV_OFF_X, y: bounds.y + AV_OFF_Y };
+  try {
+    db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['avatar_pos', JSON.stringify(currentAvatarPos)]);
+    saveDB();
+  } catch (_) {}
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // Programmatic PNG generator (no external deps needed for tray icon)
 // ─────────────────────────────────────────────────────────────────────
@@ -339,27 +360,62 @@ function setupIPC() {
     }
   });
 
-  // ── Drag ────────────────────────────────────────────────────────────
-  ipcMain.on('drag:move', (_, dx, dy) => {
+  // ── Absolute Window Dragging (DPI-Safe with fixed dimensions) ───────
+  ipcMain.on('drag:start', () => {
     if (!win) return;
-    const [x, y] = win.getPosition();
-    win.setPosition(Math.round(x + dx), Math.round(y + dy));
-  });
-  
-  ipcMain.on('drag:end', () => {
-    if (!win) return;
-    const pos = win.getPosition();
-    db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['win_pos', JSON.stringify(pos)]);
-    saveDB();
+    isDraggingWin = true;
+    lastSetX = null;
+    lastSetY = null;
   });
 
-  // ── When chat opens, ensure window doesn't overflow above top of screen ───
+  ipcMain.on('drag:to', (_, targetX, targetY) => {
+    if (!win || !isDraggingWin) return;
+    if (typeof targetX !== 'number' || typeof targetY !== 'number') return;
+    const x = Math.round(targetX);
+    const y = Math.round(targetY);
+    if (x === lastSetX && y === lastSetY) return;
+    lastSetX = x;
+    lastSetY = y;
+    win.setBounds({ x, y, width: W, height: H });
+  });
+
+  ipcMain.on('drag:move', (_, dx, dy) => {
+    if (!win || !isDraggingWin) return;
+    if (typeof dx !== 'number' || typeof dy !== 'number') return;
+    const bounds = win.getBounds();
+    const x = Math.round(bounds.x + dx);
+    const y = Math.round(bounds.y + dy);
+    if (x === lastSetX && y === lastSetY) return;
+    lastSetX = x;
+    lastSetY = y;
+    win.setBounds({ x, y, width: W, height: H });
+  });
+
+  ipcMain.on('drag:end', () => {
+    if (!win) return;
+    isDraggingWin = false;
+    lastSetX = null;
+    lastSetY = null;
+    saveCurrentAvatarPos();
+  });
+
+  // ── When chat opens: ensure entire chat window is on-screen ──────────
   ipcMain.on('chat:opened', () => {
     if (!win) return;
-    const { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-    const [x, y] = win.getPosition();
-    if (y < workArea.y) {
-      win.setPosition(x, workArea.y);
+    const bounds = win.getBounds();
+    const display = screen.getDisplayNearestPoint({ x: Math.round(bounds.x + AV_OFF_X), y: Math.round(bounds.y + AV_OFF_Y) });
+    const wa = display.workArea;
+
+    let newX = bounds.x;
+    let newY = bounds.y;
+
+    if (newY < wa.y) newY = wa.y;
+    if (newY + H > wa.y + wa.height) newY = wa.y + wa.height - H;
+    if (newX < wa.x) newX = wa.x;
+    if (newX + W > wa.x + wa.width) newX = wa.x + wa.width - W;
+
+    if (newX !== bounds.x || newY !== bounds.y) {
+      win.setBounds({ x: newX, y: newY, width: W, height: H });
     }
   });
 
@@ -398,18 +454,25 @@ function setupIPC() {
 // ─────────────────────────────────────────────────────────────────────
 // Create the overlay window
 // ─────────────────────────────────────────────────────────────────────
-function createWindow(winPos) {
-  const { workArea } = screen.getPrimaryDisplay();
+function createWindow(savedAvPos) {
+  const primary = screen.getPrimaryDisplay();
+  const workArea = primary.workArea;
 
-  const W = 440;
-  const H = 680;
-  
-  let startX = workArea.x + workArea.width  - W - 20;
-  let startY = workArea.y + workArea.height - H - 10;
-  if (winPos && winPos.length === 2) {
-    startX = winPos[0];
-    startY = winPos[1];
+  let avX = workArea.x + workArea.width - 70 - 30;
+  let avY = workArea.y + workArea.height - 70 - 30;
+
+  if (savedAvPos && typeof savedAvPos.x === 'number' && typeof savedAvPos.y === 'number') {
+    avX = savedAvPos.x;
+    avY = savedAvPos.y;
+    const display = screen.getDisplayNearestPoint({ x: Math.round(avX), y: Math.round(avY) });
+    const wa = display.workArea;
+    avX = Math.max(wa.x, Math.min(avX, wa.x + wa.width - 70));
+    avY = Math.max(wa.y, Math.min(avY, wa.y + wa.height - 70));
   }
+
+  currentAvatarPos = { x: avX, y: avY };
+  const startX = Math.round(avX - AV_OFF_X);
+  const startY = Math.round(avY - AV_OFF_Y);
 
   win = new BrowserWindow({
     width:       W,
@@ -450,6 +513,14 @@ function createWindow(winPos) {
 
   // Keep always on top even when other windows are focused
   win.setAlwaysOnTop(true, 'screen-saver');
+
+  // Cancel dragging safety if window loses focus
+  win.on('blur', () => {
+    if (isDraggingWin) {
+      isDraggingWin = false;
+      saveCurrentAvatarPos();
+    }
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -691,17 +762,29 @@ app.whenReady().then(async () => {
   setupIPC();
   startReminderChecker();
   
-  // Load window position
+  // Load saved avatar position
   const stmt = db.prepare('SELECT value FROM settings WHERE key = ?');
-  stmt.bind(['win_pos']);
-  const row = stmt.step() ? stmt.getAsObject() : null;
+  stmt.bind(['avatar_pos']);
+  let row = stmt.step() ? stmt.getAsObject() : null;
   stmt.free();
-  let winPos = null;
+  let savedAvPos = null;
   if (row) {
-    try { winPos = JSON.parse(row.value); } catch(e) {}
+    try { savedAvPos = JSON.parse(row.value); } catch(e) {}
+  } else {
+    // Fallback: check legacy win_pos
+    const stmt2 = db.prepare('SELECT value FROM settings WHERE key = ?');
+    stmt2.bind(['win_pos']);
+    row = stmt2.step() ? stmt2.getAsObject() : null;
+    stmt2.free();
+    if (row) {
+      try {
+        const wp = JSON.parse(row.value);
+        if (wp && wp.length === 2) savedAvPos = { x: wp[0] + 346, y: wp[1] + 586 };
+      } catch(e) {}
+    }
   }
   
-  createWindow(winPos);
+  createWindow(savedAvPos);
   createTray();
   setupAutoUpdater();
   

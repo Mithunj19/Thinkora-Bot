@@ -23,9 +23,11 @@ contextBridge.exposeInMainWorld('api', {
   // Click-through: pass true = transparent area (forward to OS), false = interactive
   setIgnoreMouse: (ignore) => ipcRenderer.send('window:ignore-mouse', ignore),
 
-  // Drag: send delta pixels to move the window
-  dragMove: (dx, dy) => ipcRenderer.send('drag:move', dx, dy),
-  dragEnd:  () => ipcRenderer.send('drag:end'),
+  // Drag / Window movement
+  dragStart: () => ipcRenderer.send('drag:start'),
+  dragMove:  (dx, dy) => ipcRenderer.send('drag:move', dx, dy),
+  dragTo:    (targetX, targetY) => ipcRenderer.send('drag:to', targetX, targetY),
+  dragEnd:   () => ipcRenderer.send('drag:end'),
 
   // Shortcut listener
   onShortcutOpenChat: (callback) => ipcRenderer.on('shortcut:open-chat', callback),
