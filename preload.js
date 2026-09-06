@@ -57,4 +57,12 @@ contextBridge.exposeInMainWorld('api', {
   notifySettingsUpdated: () => ipcRenderer.send('settings:notify-updated'),
   onSettingsChanged: (callback) => ipcRenderer.on('settings:changed', callback),
   onSettingsSwitchTab: (callback) => ipcRenderer.on('settings:switch-tab', (_, tab) => callback(tab)),
+
+  // Auto-updater
+  updater: {
+    check:   () => ipcRenderer.invoke('updater:check'),
+    download:() => ipcRenderer.invoke('updater:download'),
+    install: () => ipcRenderer.invoke('updater:install'),
+    onStatus:(callback) => ipcRenderer.on('updater:status', (_, payload) => callback(payload)),
+  },
 });

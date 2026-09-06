@@ -557,65 +557,80 @@ function createTray() {
 // ─────────────────────────────────────────────────────────────────────
 // Auto Updater (electron-updater via GitHub Releases)
 // ─────────────────────────────────────────────────────────────────────
+
+// Helper: send update events to the settings window (if open)
+function sendToSettings(channel, payload) {
+  if (settingsWin && !settingsWin.isDestroyed()) {
+    settingsWin.webContents.send(channel, payload);
+  }
+}
+
 function setupAutoUpdater() {
-  // Don't run updater in dev mode (only in packaged builds)
-  if (!app.isPackaged) return;
-
-  autoUpdater.autoDownload = false; // Ask user first
-  autoUpdater.autoInstallOnAppQuit = true;
-
-  autoUpdater.on('update-available', (info) => {
-    dialog.showMessageBox(win, {
-      type: 'info',
-      title: 'Update Available',
-      message: `A new version of Thinkora Bot is available!`,
-      detail: `Version ${info.version} is ready to download. Would you like to update now?`,
-      buttons: ['Update Now', 'Later'],
-      defaultId: 0,
-      cancelId: 1,
-      icon: path.join(__dirname, 'build', 'icon.ico')
-    }).then(({ response }) => {
-      if (response === 0) {
-        autoUpdater.downloadUpdate();
-      }
-    });
-  });
-
-  autoUpdater.on('update-not-available', () => {
-    // Silently do nothing — no need to bother the user
-  });
-
-  autoUpdater.on('download-progress', (progress) => {
-    if (win) {
-      win.setProgressBar(progress.percent / 100);
+  // ── IPC: renderer-driven update actions ─────────────────────────
+  ipcMain.handle('updater:check', async () => {
+    if (!app.isPackaged) {
+      sendToSettings('updater:status', { state: 'up-to-date', version: app.getVersion() });
+      return;
+    }
+    try { await autoUpdater.checkForUpdates(); } catch(e) {
+      sendToSettings('updater:status', { state: 'error', message: e.message });
     }
   });
 
-  autoUpdater.on('update-downloaded', (info) => {
-    if (win) win.setProgressBar(-1); // Clear progress bar
-    dialog.showMessageBox(win, {
-      type: 'info',
-      title: 'Update Ready',
-      message: 'Update downloaded!',
-      detail: `Version ${info.version} has been downloaded. Thinkora Bot will restart to apply the update.`,
-      buttons: ['Restart Now', 'Later'],
-      defaultId: 0,
-      cancelId: 1,
-    }).then(({ response }) => {
-      if (response === 0) {
-        autoUpdater.quitAndInstall();
-      }
+  ipcMain.handle('updater:download', async () => {
+    if (!app.isPackaged) return;
+    try { await autoUpdater.downloadUpdate(); } catch(e) {
+      sendToSettings('updater:status', { state: 'error', message: e.message });
+    }
+  });
+
+  ipcMain.handle('updater:install', () => {
+    if (!app.isPackaged) return;
+    autoUpdater.quitAndInstall();
+  });
+
+  // Don't run auto-updater listeners in unpackaged dev mode
+  if (!app.isPackaged) return;
+
+  autoUpdater.autoDownload = false; // User decides
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    sendToSettings('updater:status', { state: 'checking' });
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    sendToSettings('updater:status', { state: 'available', version: info.version, releaseNotes: info.releaseNotes });
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    sendToSettings('updater:status', { state: 'up-to-date', version: info.version });
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    if (win) win.setProgressBar(progress.percent / 100);
+    sendToSettings('updater:status', {
+      state: 'downloading',
+      percent: Math.round(progress.percent),
+      transferred: progress.transferred,
+      total: progress.total,
+      bytesPerSecond: progress.bytesPerSecond
     });
   });
 
-  autoUpdater.on('error', (err) => {
-    // Silently log errors — don't bother user with update errors
-    console.error('[AutoUpdater] Error:', err.message);
+  autoUpdater.on('update-downloaded', (info) => {
+    if (win) win.setProgressBar(-1);
+    sendToSettings('updater:status', { state: 'downloaded', version: info.version });
   });
 
-  // Check for updates after a short delay to not slow down startup
+  autoUpdater.on('error', (err) => {
+    console.error('[AutoUpdater] Error:', err.message);
+    sendToSettings('updater:status', { state: 'error', message: err.message });
+  });
+
+  // Check silently on startup after short delay
   setTimeout(() => {
-    autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdates().catch(() => {});
   }, 5000);
 }
 

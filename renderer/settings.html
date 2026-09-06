@@ -441,6 +441,7 @@
     <button class="tab-btn" data-tab="voice">🔊 Voice</button>
     <button class="tab-btn" data-tab="reminders">⏰ Reminders</button>
     <button class="tab-btn" data-tab="memory">🧠 Memory</button>
+    <button class="tab-btn" data-tab="updates">🔄 Updates</button>
   </nav>
 
   <!-- Tab Contents Wrap (No Window Scroll) -->
@@ -633,12 +634,60 @@
       </div>
     </section>
 
+    <!-- TAB 6: Updates -->
+    <section class="tab-pane" id="pane-updates">
+      <div class="form-section">
+        <div class="sec-title"><span>🔄</span> App Updates</div>
+
+        <!-- Version Info Row -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px;">
+          <div>
+            <div style="font-size:0.88rem; font-weight:700; color:var(--text);">Thinkora Bot</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Current version: <b id="upd-current-ver">v1.0.1</b></div>
+          </div>
+          <div id="upd-ver-badge" style="display:none; padding:4px 12px; border-radius:99px; background:linear-gradient(135deg,var(--accent),var(--accent-d)); color:white; font-size:0.78rem; font-weight:700;">New!</div>
+        </div>
+
+        <!-- Status Card -->
+        <div id="upd-status-card" style="padding:16px; border-radius:10px; background:var(--surface2); border:1px solid var(--border); display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span id="upd-icon" style="font-size:1.4rem;">🔍</span>
+            <div style="flex:1;">
+              <div id="upd-title" style="font-size:0.94rem; font-weight:700; color:var(--text);">Check for Updates</div>
+              <div id="upd-desc" style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Click the button below to check for the latest version.</div>
+            </div>
+          </div>
+          <!-- Download Progress Bar -->
+          <div id="upd-progress-wrap" style="display:none; flex-direction:column; gap:5px;">
+            <div style="background:var(--border); border-radius:99px; height:8px; overflow:hidden;">
+              <div id="upd-progress-bar" style="height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--accent-d)); transition:width 0.4s ease;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span id="upd-progress-pct" style="font-size:0.78rem; font-weight:700; color:var(--accent);">0%</span>
+              <span id="upd-progress-speed" style="font-size:0.75rem; color:var(--text-muted);"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex; gap:10px;">
+          <button id="btn-upd-check" class="btn-primary" style="flex:1; padding:11px 0;">🔍 Check for Updates</button>
+          <button id="btn-upd-download" style="flex:1; padding:11px 0; display:none; border-radius:var(--r-sm); border:none; background:linear-gradient(135deg,#22c55e,#16a34a); color:white; font-family:var(--font); font-size:0.93rem; font-weight:700; cursor:pointer;">⬇️ Download Update</button>
+          <button id="btn-upd-install" style="flex:1; padding:11px 0; display:none; border-radius:var(--r-sm); border:none; background:linear-gradient(135deg,#f59e0b,#d97706); color:white; font-family:var(--font); font-size:0.93rem; font-weight:700; cursor:pointer;">🚀 Install &amp; Restart</button>
+        </div>
+
+        <div class="field-hint" style="text-align:center;">
+          Your data and settings are safely preserved during updates.
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Bottom Save Bar -->
   <footer class="bottom-bar">
     <div class="bottom-bar-info">
-      <span class="app-version">Thinkora Bot v1.0.0</span>
+      <span class="app-version">Thinkora Bot v1.0.1</span>
       <span class="app-dev">Developed by Mithunj19</span>
     </div>
     <button type="button" id="btn-save-settings" class="btn-primary">💾 Save Changes</button>
@@ -1043,6 +1092,100 @@
     }
 
     loadData();
+    // ── Auto Updater UI ─────────────────────────────────────────────────
+    var btnUpdCheck    = document.getElementById('btn-upd-check');
+    var btnUpdDownload = document.getElementById('btn-upd-download');
+    var btnUpdInstall  = document.getElementById('btn-upd-install');
+    var updIcon        = document.getElementById('upd-icon');
+    var updTitle       = document.getElementById('upd-title');
+    var updDesc        = document.getElementById('upd-desc');
+    var updProgressWrap= document.getElementById('upd-progress-wrap');
+    var updProgressBar = document.getElementById('upd-progress-bar');
+    var updProgressPct = document.getElementById('upd-progress-pct');
+    var updProgressSpd = document.getElementById('upd-progress-speed');
+    var updVerBadge    = document.getElementById('upd-ver-badge');
+
+    function setUpdState(icon, title, desc, showDownload, showInstall, showProgress) {
+      updIcon.textContent  = icon;
+      updTitle.textContent = title;
+      updDesc.textContent  = desc;
+      btnUpdCheck.style.display    = (!showDownload && !showInstall) ? 'block' : 'none';
+      btnUpdDownload.style.display = showDownload ? 'block' : 'none';
+      btnUpdInstall.style.display  = showInstall  ? 'block' : 'none';
+      updProgressWrap.style.display= showProgress ? 'flex'  : 'none';
+    }
+
+    // Button actions
+    if (btnUpdCheck) {
+      btnUpdCheck.addEventListener('click', function() {
+        if (window.api && window.api.updater) {
+          setUpdState('⏳', 'Checking for updates…', 'Checking for new version…', false, false, false);
+          btnUpdCheck.disabled = true;
+          btnUpdCheck.textContent = '⏳ Checking…';
+          window.api.updater.check().finally(function() {
+            btnUpdCheck.disabled = false;
+            btnUpdCheck.textContent = '🔍 Check for Updates';
+          });
+        } else {
+          setUpdState('🛠️', 'Dev Mode', 'Auto-updates are only active in the packaged build.', false, false, false);
+        }
+      });
+    }
+
+    if (btnUpdDownload) {
+      btnUpdDownload.addEventListener('click', function() {
+        if (window.api && window.api.updater) {
+          setUpdState('⬇️', 'Starting Download…', 'Downloading update…', false, false, true);
+          window.api.updater.download();
+        }
+      });
+    }
+
+    if (btnUpdInstall) {
+      btnUpdInstall.addEventListener('click', function() {
+        if (window.api && window.api.updater) {
+          window.api.updater.install();
+        }
+      });
+    }
+
+    // Listen for IPC status events from main process
+    if (window.api && window.api.updater) {
+      window.api.updater.onStatus(function(payload) {
+        switch (payload.state) {
+          case 'checking':
+            setUpdState('⏳', 'Checking for updates…', 'Checking for new version…', false, false, false);
+            break;
+          case 'available':
+            updVerBadge.style.display = 'block';
+            updVerBadge.textContent   = 'v' + payload.version + ' available!';
+            setUpdState('🆕', 'Update Available — v' + payload.version, 'A new version is ready to download. Click Download to get it.', true, false, false);
+            break;
+          case 'up-to-date':
+            updVerBadge.style.display = 'none';
+            setUpdState('✅', 'You\'re up to date!', 'Thinkora Bot v1.0.1 is the latest version.', false, false, false);
+            break;
+          case 'downloading':
+            updProgressWrap.style.display = 'flex';
+            updProgressBar.style.width    = payload.percent + '%';
+            updProgressPct.textContent    = payload.percent + '%';
+            var kbps = payload.bytesPerSecond ? Math.round(payload.bytesPerSecond / 1024) + ' KB/s' : '';
+            updProgressSpd.textContent    = kbps;
+            setUpdState('⬇️', 'Downloading update… ' + payload.percent + '%', 'Please keep the app open until the download finishes.', false, false, true);
+            break;
+          case 'downloaded':
+            updVerBadge.textContent   = '✓ Ready to install!';
+            updProgressWrap.style.display = 'none';
+            setUpdState('✅', 'Update Downloaded! v' + payload.version, 'The update is ready. Click Install & Restart to apply it now.', false, true, false);
+            break;
+          case 'error':
+            setUpdState('❌', 'Update Failed', payload.message || 'An error occurred. Please try again later.', false, false, false);
+            btnUpdCheck.style.display = 'block';
+            break;
+        }
+      });
+    }
+
   </script>
 
   <!-- Compliance Footer -->
