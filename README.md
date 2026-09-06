@@ -120,7 +120,7 @@ You can bundle and build a standalone Windows installer (`.exe`) using `electron
 npm run build
 ```
 
-This compiles a production-ready NSIS installer in the `dist/` directory (e.g., `dist/Thinkora Bot Setup 1.0.0.exe`).
+This compiles a production-ready NSIS installer in the `dist/` directory (e.g., `dist/Thinkora Bot Setup 1.0.2.exe`).
 
 ---
 

@@ -648,7 +648,7 @@
         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px;">
           <div>
             <div style="font-size:0.88rem; font-weight:700; color:var(--text);">Thinkora Bot</div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Current version: <b id="upd-current-ver">v1.0.1</b></div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Current version: <b id="upd-current-ver">v1.0.2</b></div>
           </div>
           <div id="upd-ver-badge" style="display:none; padding:4px 12px; border-radius:99px; background:linear-gradient(135deg,var(--accent),var(--accent-d)); color:white; font-size:0.78rem; font-weight:700;">New!</div>
         </div>
@@ -692,7 +692,7 @@
   <!-- Bottom Save Bar -->
   <footer class="bottom-bar">
     <div class="bottom-bar-info">
-      <span class="app-version">Thinkora Bot v1.0.1</span>
+      <span class="app-version">Thinkora Bot v1.0.2</span>
       <span class="app-dev">Developed by Mithunj19</span>
     </div>
     <button type="button" id="btn-save-settings" class="btn-primary">💾 Save Changes</button>
@@ -1109,6 +1109,17 @@
     var updProgressPct = document.getElementById('upd-progress-pct');
     var updProgressSpd = document.getElementById('upd-progress-speed');
     var updVerBadge    = document.getElementById('upd-ver-badge');
+    var updCurrentVer  = document.getElementById('upd-current-ver');
+    var appVersionEl   = document.querySelector('.bottom-bar-info .app-version');
+
+    if (window.api && window.api.getAppVersion) {
+      window.api.getAppVersion().then(function(v) {
+        if (v) {
+          if (updCurrentVer) updCurrentVer.textContent = 'v' + v;
+          if (appVersionEl) appVersionEl.textContent = 'Thinkora Bot v' + v;
+        }
+      });
+    }
 
     function setUpdState(icon, title, desc, showDownload, showInstall, showProgress) {
       updIcon.textContent  = icon;
@@ -1168,7 +1179,8 @@
             break;
           case 'up-to-date':
             updVerBadge.style.display = 'none';
-            setUpdState('✅', 'You\'re up to date!', 'Thinkora Bot v1.0.1 is the latest version.', false, false, false);
+            var currentV = (updCurrentVer && updCurrentVer.textContent) ? updCurrentVer.textContent : ('v' + (payload.version || '1.0.2'));
+            setUpdState('✅', 'You\'re up to date!', 'Thinkora Bot ' + currentV + ' is the latest version.', false, false, false);
             break;
           case 'downloading':
             updProgressWrap.style.display = 'flex';

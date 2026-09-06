@@ -67,4 +67,7 @@ contextBridge.exposeInMainWorld('api', {
     install: () => ipcRenderer.invoke('updater:install'),
     onStatus:(callback) => ipcRenderer.on('updater:status', (_, payload) => callback(payload)),
   },
+
+  // App version
+  getAppVersion: () => ipcRenderer.invoke('app:get-version'),
 });

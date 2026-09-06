@@ -449,6 +449,9 @@ function setupIPC() {
       shell.openExternal(url);
     }
   });
+
+  // ── App Info ────────────────────────────────────────────────────────
+  ipcMain.handle('app:get-version', () => app.getVersion());
 }
 
 // ─────────────────────────────────────────────────────────────────────
